@@ -20,26 +20,33 @@ public sealed class AuctionService(
 
     public async Task<AuctionListResponse> GetAuctionsAsync(AuctionQuery query, CancellationToken cancellationToken)
     {
-        var normalizedPage = Math.Max(1, query.Page);
-        var normalizedPageSize = Math.Clamp(query.PageSize, 1, 50);
+        var normalizedPage = Math.Max(1, query.Page.GetValueOrDefault(1));
+        var normalizedPageSize = Math.Clamp(query.PageSize.GetValueOrDefault(12), 1, 50);
 
         var auctions = dbContext.Auctions
             .AsNoTracking()
             .Include(x => x.Images)
             .Where(x => x.Status == AuctionStatus.Active);
 
-        if (!string.IsNullOrWhiteSpace(query.Category))
+        var category = query.Category?.Trim();
+        if (!string.IsNullOrWhiteSpace(category))
         {
-            auctions = auctions.Where(x => x.Category == query.Category);
+            auctions = auctions.Where(x => x.Category == category);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Search))
+        var search = query.Search?.Trim();
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            var search = query.Search.Trim();
             auctions = auctions.Where(x => x.Title.Contains(search) || x.Description.Contains(search));
         }
 
-        auctions = query.Sort switch
+        var sort = query.Sort?.Trim();
+        if (string.IsNullOrWhiteSpace(sort))
+        {
+            sort = "ending_soon";
+        }
+
+        auctions = sort switch
         {
             "newest" => auctions.OrderByDescending(x => x.CreatedAtUtc),
             "price_asc" => auctions.OrderBy(x => x.CurrentBid ?? x.StartingBid),

@@ -98,11 +98,11 @@ public sealed record MarkNotificationReadRequest(bool IsRead = true);
 
 public sealed class AuctionQuery
 {
-    public string Sort { get; init; } = "ending_soon";
-    public string Category { get; init; } = string.Empty;
-    public string Search { get; init; } = string.Empty;
-    public int Page { get; init; } = 1;
-    public int PageSize { get; init; } = 12;
+    public string? Sort { get; init; }
+    public string? Category { get; init; }
+    public string? Search { get; init; }
+    public int? Page { get; init; }
+    public int? PageSize { get; init; }
 }
 
 public sealed class CreateAuctionForm
